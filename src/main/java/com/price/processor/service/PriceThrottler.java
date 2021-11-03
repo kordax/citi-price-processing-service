@@ -17,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.annotation.PostConstruct;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
@@ -49,12 +50,15 @@ public class PriceThrottler implements PriceProcessor, ApplicationListener<Excha
 	private final ExchangeRatesMonitor monitor;
 
 	// I wanted to use a PriorityQueue here, but there's no info in the PriceProcessor at all and we cannot sort it by the definition
+	@Getter
 	private List<PriceProcessor> subscribers = new LinkedList<>();
 	// That's a workaround because we cannot change the PriceProcessor class at all and
 	// interface is already defined by the task definition
+	@Getter
 	private Map<PriceProcessor, UUID> subscriberIds = new HashMap<>();
 
 	// Processor with it's running task that returns a future with operation start time
+	@Getter
 	private Multimap<PriceProcessor, Task> runningTasks = HashMultimap.create();
 
 	private ExecutorService threadPool;
@@ -198,6 +202,7 @@ public class PriceThrottler implements PriceProcessor, ApplicationListener<Excha
 		} else {
 			if (task.getStartTime() > config.getSoftTimeout().toMillis()) {
 				log.info("Skipping a non-rare exchange rate change");
+				onSkip();
 			}
 		}
 	}
@@ -207,5 +212,9 @@ public class PriceThrottler implements PriceProcessor, ApplicationListener<Excha
 		event.getRates().forEach(
 			(pair, rate) -> onPrice(pair.toString(), rate)
 		);
+	}
+
+	public void onSkip() {
+
 	}
 }

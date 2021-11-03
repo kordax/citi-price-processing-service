@@ -35,15 +35,12 @@ public class ExchangeRatesGenerator {
 	@Getter
 	private Map<CcyPair, Double> lastGeneratedRates = new HashMap<>();
 
-	@Value("classpath:exchange_rates_template.json")
-	private Resource resourceFile;
-
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
 
 	@PostConstruct
 	public void init() throws IOException, ApplicationErrorException, InterruptedException {
-		List<JsonExchEntry> entries = jsonService.readJsonExchangeEntries(resourceFile);
+		List<JsonExchEntry> entries = jsonService.readJsonExchangeEntries(config.getResourceFile());
 		for (JsonExchEntry entry : entries) {
 			CurrencyUtil.codePairToCurrPair(entry.getPair());
 		}
